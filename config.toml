@@ -59,3 +59,16 @@ rpcs = [
     "https://bsc-dataseed.binance.org",
     "https://rpc.ankr.com/bsc",
 ]
+
+[thresholds]
+# Пороговые значения для подсветки (в ETH)
+ethereum = 0.1
+sepolia = 0.1
+linea = 0.1
+polygon = 100.0  # В POL
+base = 0.1
+blast = 0.1
+optimism = 0.1
+arbitrum = 0.1
+zksync = 0.1
+bsc = 1.0  # В BNB

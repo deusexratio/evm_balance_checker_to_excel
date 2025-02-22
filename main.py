@@ -52,17 +52,22 @@ MIN_REQUEST_INTERVAL = 3.0
 current_rpc_index = {}
 
 def load_networks_config():
-    """Load network RPC configurations from config.toml file."""
+    """Load network RPC configurations and thresholds from config.toml file."""
     try:
         with open("config.toml", "rb") as f:
             config = tomli.load(f)
-            return {network: rpcs["rpcs"] for network, rpcs in config["networks"].items()}
+            return {
+                "networks": {network: rpcs["rpcs"] for network, rpcs in config["networks"].items()},
+                "thresholds": config["thresholds"]
+            }
     except Exception as e:
         logger.error(f"Error loading config.toml: {e}")
         raise
 
-# Загрузка конфигурации сетей из TOML файла
-networks = load_networks_config()
+# Загрузка конфигурации сетей и пороговых значений из TOML файла
+config = load_networks_config()
+networks = config["networks"]
+thresholds = config["thresholds"]
 
 headers = {
     'Content-Type': 'application/json',
@@ -231,7 +236,7 @@ def write_results(report: BalanceReport):
     
     # Установка фиксированной ширины для всех столбцов
     for column in sheet.iter_cols(min_col=2, max_col=11):
-        sheet.column_dimensions[column[0].column_letter].width = 25
+        sheet.column_dimensions[column[0].column_letter].width = 35  # Увеличиваем ширину для больших чисел
 
     # Стиль заголовков
     header_font = Font(bold=True)
@@ -241,6 +246,13 @@ def write_results(report: BalanceReport):
     # Создаем стиль для границ (все стороны)
     thin = Side(border_style="thin", color="000000")  # Тонкая черная линия
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # Стиль для числовых значений
+    number_alignment = Alignment(horizontal="right", vertical="center")
+    number_format = "0." + "0" * 20  # Формат с 20 знаками после запятой
+
+    # Стиль для подсветки значений выше порога
+    green_fill = PatternFill("solid", fgColor="90EE90")  # Светло-зеленый цвет
 
     headers_xlsx = ['Address', 'Ethereum', 'Sepolia', 'Linea', 'Polygon',
                'Base', 'Blast', 'Optimism', 'Arbitrum', 'Zksync', 'BSC']
@@ -282,21 +294,42 @@ def write_results(report: BalanceReport):
         # Определяем номер строки для записи (следующая свободная строка)
         row_num = sheet.max_row + 1
 
-        # Записываем данные в новую строку
-        sheet.cell(row=row_num, column=1, value=wallet.address).border = border
-        sheet.cell(row=row_num, column=2, value=ethereum_balance).border = border
-        sheet.cell(row=row_num, column=3, value=sepolia_balance).border = border
-        sheet.cell(row=row_num, column=4, value=linea_balance).border = border
-        sheet.cell(row=row_num, column=5, value=polygon_balance).border = border
-        sheet.cell(row=row_num, column=6, value=base_balance).border = border
-        sheet.cell(row=row_num, column=7, value=blast_balance).border = border
-        sheet.cell(row=row_num, column=8, value=optimism_balance).border = border
-        sheet.cell(row=row_num, column=9, value=arbitrum_balance).border = border
-        sheet.cell(row=row_num, column=10, value=zksync_balance).border = border
-        sheet.cell(row=row_num, column=11, value=bsc_balance).border = border
+        # Записываем адрес
+        address_cell = sheet.cell(row=row_num, column=1, value=wallet.address)
+        address_cell.border = border
+        address_cell.alignment = Alignment(horizontal="left", vertical="center")
 
-    wb.save(filename=filename)
+        # Функция для установки стиля ячейки с балансом
+        def set_balance_cell_style(cell, value, network):
+            cell.border = border
+            if value != 'None':
+                cell.number_format = number_format
+                cell.alignment = number_alignment
+                cell.value = float(value)  # Преобразуем Decimal в float для Excel
+                
+                # Проверяем, превышает ли значение порог и подсвечиваем ячейку
+                if network.lower() in thresholds and float(value) >= thresholds[network.lower()]:
+                    cell.fill = green_fill
+            else:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.value = value
+
+        # Записываем балансы с форматированием
+        balances_with_networks = list(zip(
+            [ethereum_balance, sepolia_balance, linea_balance, polygon_balance, 
+             base_balance, blast_balance, optimism_balance, arbitrum_balance, 
+             zksync_balance, bsc_balance],
+            ['ethereum', 'sepolia', 'linea', 'polygon', 'base', 'blast', 
+             'optimism', 'arbitrum', 'zksync', 'bsc']
+        ))
+        
+        for col_num, (balance, network) in enumerate(balances_with_networks, start=2):
+            cell = sheet.cell(row=row_num, column=col_num)
+            set_balance_cell_style(cell, balance, network)
+
+    wb.save(filename)
     wb.close()
+    logger.info(f"Results saved to {filename}")
 
 
 async def main():
