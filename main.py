@@ -249,7 +249,7 @@ def write_results(report: BalanceReport):
 
     # Стиль для числовых значений
     number_alignment = Alignment(horizontal="right", vertical="center")
-    number_format = "0." + "0" * 20  # Формат с 20 знаками после запятой
+    number_format = "0." + "0" * 18  # Формат с 18 знаками после запятой
 
     # Стиль для подсветки значений выше порога
     green_fill = PatternFill("solid", fgColor="90EE90")  # Светло-зеленый цвет
