@@ -1,0 +1,61 @@
+[networks]
+
+[networks.Ethereum]
+rpcs = [
+    "https://eth.llamarpc.com",
+    "https://rpc.ankr.com/eth",
+]
+
+[networks.Sepolia]
+rpcs = [
+    "https://rpc.sepolia.org",
+    "https://sepolia.drpc.org",
+]
+
+[networks.Linea]
+rpcs = [
+    "https://rpc.linea.build",
+    "https://1rpc.io/linea",
+]
+
+[networks.Polygon]
+rpcs = [
+    "https://polygon-rpc.com",
+    "https://rpc.ankr.com/polygon",
+]
+
+[networks.Base]
+rpcs = [
+    "https://base.llamarpc.com",
+    "https://1rpc.io/base",
+]
+
+[networks.Blast]
+rpcs = [
+    "https://blast.blockpi.network/v1/rpc/public",
+    "https://rpc.ankr.com/blast",
+]
+
+[networks.Optimism]
+rpcs = [
+    "https://optimism.llamarpc.com",
+    "https://1rpc.io/op",
+]
+
+[networks.Arbitrum]
+rpcs = [
+    "https://arb1.arbitrum.io/rpc",
+    "https://rpc.ankr.com/arbitrum",
+]
+
+[networks.Zksync]
+rpcs = [
+    "https://mainnet.era.zksync.io",
+    "https://zksync.meowrpc.com",
+]
+
+[networks.BSC]
+rpcs = [
+    "https://bsc-dataseed.binance.org",
+    "https://rpc.ankr.com/bsc",
+]
